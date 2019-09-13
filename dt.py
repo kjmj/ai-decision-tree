@@ -84,7 +84,8 @@ df = pd.get_dummies(df)
 
 # x and y dataset
 # here we want to predict if 1 or 2 wins, major todo here
-x = df.drop('Winner_1', axis=1)
+x = df.drop(['Winner_1', 'Winner_2'], axis=1)
+print(x.head())
 # x = x.drop('More in Center', axis=1)
 # x = x.drop('More on Board', axis=1)
 y = df['Winner_1']
