@@ -121,8 +121,9 @@ y = df['Winner_1']
 # x.to_csv('x.csv')
 # y.to_csv('y.csv')
 
-# split data into train and test
-x_train, x_test, y_train, y_test = train_test_split(x, y, random_state=1)
+# split our data into 60% test, 20% train, and 20% validation
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
+x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.25)
 
 # create our decision tree classifier
 model = tree.DecisionTreeClassifier()
@@ -145,5 +146,7 @@ graph.write_png("tree.png")
 
 # cross validation
 kfold = KFold(n_splits=3, shuffle=True)
-results = cross_val_score(model, x_train, y_train, cv=kfold, scoring='accuracy')
-print('3 fold cross validation score:', results)
+train_results = cross_val_score(model, x_train, y_train, cv=kfold, scoring='accuracy')
+val_results = cross_val_score(model, x_val, y_val, cv=kfold, scoring='accuracy')
+print('3-fold training results:', train_results)
+print('3-fold validation results:', val_results)
