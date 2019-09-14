@@ -1,4 +1,3 @@
-#%%
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn import tree
@@ -6,12 +5,12 @@ from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from subprocess import call
 import csv
+import sys
 
-#%%
 # extract features and return a data frame with those features
-def extract_features():
+def extract_features(input_file):
     # read in csv
-    with open('trainDataSet (2).csv', newline='') as csvfile:
+    with open(input_file, newline='') as csvfile:
         boards = csv.reader(csvfile, delimiter=',', quotechar='|')
         next(boards) # skip first line
 
@@ -57,12 +56,19 @@ def more_in_center(board):
     else:
         return 'tie'
 
-#%%
+
+# assignment specifies data input is first arg, feature export is second arg
+input_file = sys.argv[1]
+output_file = sys.argv[2]
+
 # extract the features and construct a dataframe
-df = extract_features()
+df = extract_features(input_file)
 
 # one hot encode our data
 df = pd.get_dummies(df)
+
+# export our features csv
+df.to_csv(output_file)
 
 # seperate into data and known truths
 x = df.drop(['Winner_1', 'Winner_2'], axis=1)
@@ -76,7 +82,6 @@ y = df['Winner_1']
 # split data into train and test
 x_train, x_test, y_train, y_test = train_test_split(x, y, random_state=1)
 
-#%%
 # create our decision tree classifier
 model = tree.DecisionTreeClassifier()
 model.fit(x_train, y_train)
@@ -94,6 +99,3 @@ print(matrix)
 # export the tree to an image
 tree.export_graphviz(model, out_file='tree.dot', feature_names=x.columns)
 call(['dot', '-T', 'png', 'tree.dot', '-o', 'tree.png'])
-
-
-#%%
