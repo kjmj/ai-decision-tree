@@ -8,6 +8,7 @@ from sklearn.model_selection import cross_val_score
 from subprocess import call
 import csv
 import sys
+import pydot
 
 # extract features and return a data frame with those features
 def extract_features(input_file):
@@ -22,10 +23,12 @@ def extract_features(input_file):
             brc = bot_right_corner(board)
             bc = bot_center(board)
             mc = more_in_center(board)
+            ml = more_in_leftmost(board)
+            mr = more_in_rightmost(board)
             winner = board[42]
 
-            data.append([blc, brc, bc, mc, winner])
-    return pd.DataFrame(data, columns=['Bot Left Corner', 'Bot Right Corner', 'Bot Center', 'More in Center', 'Winner'])
+            data.append([blc, brc, bc, ml, mr, mc, winner])
+    return pd.DataFrame(data, columns=['Bot Left Corner', 'Bot Right Corner', 'Bot Center', 'More in Leftmost', 'More in Rightmost', 'More in Center', 'Winner'])
 
 # return 0 if nobody is occupying the bottom left corner, otherwise 1 or 2 for the player that is occupying it
 def bot_left_corner(board):
@@ -58,6 +61,43 @@ def more_in_center(board):
     else:
         return 'tie'
 
+# return 'tie' if they both have the same number of pieces in the leftmost column, otherwise '1' or '2' for the player with more
+def more_in_leftmost(board):
+    num1 = 0
+    num2 = 0
+    # leftmost indexes: 0-5
+    for i in range (0,5):
+        piece = board[i]
+        if piece == '1':
+            num1 += 1
+        elif piece == '2':
+            num2 += 1
+    
+    if num1 > num2:
+        return '1'
+    elif num2 > num1:
+        return '2'
+    else:
+        return 'tie'
+
+# return 'tie' if they both have the same number of pieces in the rightmost column, otherwise '1' or '2' for the player with more
+def more_in_rightmost(board):
+    num1 = 0
+    num2 = 0
+    # leftmost indexes: 36-41
+    for i in range (36,41):
+        piece = board[i]
+        if piece == '1':
+            num1 += 1
+        elif piece == '2':
+            num2 += 1
+    
+    if num1 > num2:
+        return '1'
+    elif num2 > num1:
+        return '2'
+    else:
+        return 'tie'
 
 # assignment specifies data input is first arg, feature export is second arg
 input_file = sys.argv[1]
@@ -99,8 +139,9 @@ matrix = pd.DataFrame(
 print(matrix)
 
 # export the tree to an image
-tree.export_graphviz(model, out_file='tree.dot', feature_names=x.columns)
-call(['dot', '-T', 'png', 'tree.dot', '-o', 'tree.png'])
+dot = tree.export_graphviz(model, feature_names=x.columns)
+(graph,)=pydot.graph_from_dot_data(dot)
+graph.write_png("tree.png")
 
 # cross validation
 kfold = KFold(n_splits=3, shuffle=True)
