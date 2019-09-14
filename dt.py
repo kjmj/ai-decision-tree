@@ -25,7 +25,7 @@ def extract_features():
             mr = more_in_rightmost(board)
             winner = board[42]
 
-            data.append([blc, brc, bc, mc, ml, mr, winner])
+            data.append([blc, brc, bc, ml, mr, mc, winner])
     return pd.DataFrame(data, columns=['Bot Left Corner', 'Bot Right Corner', 'Bot Center', 'More in Leftmost', 'More in Rightmost', 'More in Center', 'Winner'])
 
 # return 0 if nobody is occupying the bottom left corner, otherwise 1 or 2 for the player that is occupying it
