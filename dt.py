@@ -3,6 +3,8 @@ from sklearn.model_selection import train_test_split
 from sklearn import tree
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import KFold
+from sklearn.model_selection import cross_val_score
 from subprocess import call
 import csv
 import sys
@@ -99,3 +101,8 @@ print(matrix)
 # export the tree to an image
 tree.export_graphviz(model, out_file='tree.dot', feature_names=x.columns)
 call(['dot', '-T', 'png', 'tree.dot', '-o', 'tree.png'])
+
+# cross validation
+kfold = KFold(n_splits=3, shuffle=True)
+results = cross_val_score(model, x_train, y_train, cv=kfold, scoring='accuracy')
+print('3 fold cross validation score:', results)
