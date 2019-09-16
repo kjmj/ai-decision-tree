@@ -4,6 +4,8 @@ from sklearn import tree
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import KFold
+from sklearn.metrics import classification_report
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
 from subprocess import call
 import csv
@@ -114,12 +116,7 @@ df.to_csv(output_file)
 
 # seperate into data and known truths
 x = df.drop(['Winner_1', 'Winner_2'], axis=1)
-y = df['Winner_1']
-
-# test to see what our dataframes look like
-# df.to_csv('df.csv')
-# x.to_csv('x.csv')
-# y.to_csv('y.csv')
+y = df['Winner_2']
 
 # split our data into 60% test, 20% train, and 20% validation
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
@@ -127,22 +124,20 @@ x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.
 
 # create our decision tree classifier
 model = tree.DecisionTreeClassifier()
-model.fit(x_train, y_train)
+model = model.fit(x_train, y_train)
 y_predict = model.predict(x_test)
-
-print('Accuracy score:', accuracy_score(y_test, y_predict))
-
-matrix = pd.DataFrame(
-    confusion_matrix(y_test, y_predict),
-    columns=['Predicted Loss', 'Predicted Win'],
-    index=['True Loss', 'True Win']
-)
-print(matrix)
+print('Accuracy score single tree:', accuracy_score(y_test, y_predict))
 
 # export the tree to an image
 dot = tree.export_graphviz(model, feature_names=x.columns)
 (graph,)=pydot.graph_from_dot_data(dot)
 graph.write_png("tree.png")
+
+# get feature importances
+feature_importances = pd.DataFrame.from_dict([dict(zip(x.columns, model.feature_importances_))])
+feature_importances = feature_importances.transpose().reset_index()
+feature_importances.columns = ['feature', 'feature importance']
+feature_importances.to_csv('feature_importances_tree.csv', index=False)
 
 # cross validation
 kfold = KFold(n_splits=3, shuffle=True)
@@ -150,3 +145,13 @@ train_results = cross_val_score(model, x_train, y_train, cv=kfold, scoring='accu
 val_results = cross_val_score(model, x_val, y_val, cv=kfold, scoring='accuracy')
 print('3-fold training results:', train_results)
 print('3-fold validation results:', val_results)
+
+# random forest experiment
+forest = RandomForestClassifier(n_estimators=100, max_depth=2, random_state=0)
+forest = forest.fit(x_train, y_train)
+y_predict = forest.predict(x_test)
+print('Accuracy score random forest:', accuracy_score(y_test, y_predict))
+feature_importances_forest = pd.DataFrame.from_dict([dict(zip(x.columns, forest.feature_importances_))])
+feature_importances_forest = feature_importances_forest.transpose().reset_index()
+feature_importances_forest.columns = ['feature', 'feature importance']
+feature_importances_forest.to_csv('feature_importances_forest.csv', index=False)
